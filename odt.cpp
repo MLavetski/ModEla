@@ -83,7 +83,7 @@ void odt::readNT()
 		}
 		if(rowsRead>2)
 		{
-			z.append(numbersInText.at(0).toDouble());
+			z.append(numbersInText.at(0).toDouble()*(-1));
 			defl.append(numbersInText.at(1).toDouble());
 		}
 		rowsRead++;
@@ -111,7 +111,7 @@ void odt::readFS()
 			posF+=rx.matchedLength();
 			numbersInText<<rx.capturedTexts();
 		}
-		z.append(numbersInText.at(0).toDouble());
+		z.append(numbersInText.at(0).toDouble()*(-1));
 		defl.append(numbersInText.at(1).toDouble());
 	}
 	//"reflect" fastscan graph on y axis.
@@ -131,7 +131,7 @@ void odt::drawData()
 	}
 	ui->startPSlider->setMaximum(amPoints-1);
 	ui->stopPSlider->setMaximum(amPoints-1);
-	int sp=50, graphHeight=256;
+	/*int sp=50, graphHeight=256;
 	if(amPoints<512)
 		sizeMult=512/(double)amPoints;
 	else
@@ -158,13 +158,20 @@ void odt::drawData()
 	pen.drawLine(sp,((max)/(max-min)*(graphHeight)-1),
 				 graph.width()-1,((max)/(max-min)*(graphHeight)));//draw line at 0 defl
 	ui->label->setGeometry(0,0,graph.width(), graph.height());
-	ui->label->setPixmap(QPixmap::fromImage(graph));
-	this->setGeometry(this->x(),this->y(),graph.width(),this->height());
+	ui->label->setPixmap(QPixmap::fromImage(graph));*/
+	QCustomPlot* plotData = ui->label;
+	plotData->addGraph();
+	plotData->graph(0)->addData(z,defl);
+	plotData->xAxis->setLabel("z, nm");
+	plotData->yAxis->setLabel("defl");
+	plotData->rescaleAxes();
+	plotData->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	plotData->replot();
 }
 
 void odt::updateSelectedP()
 {
-	int graphHeight = 256;
+	/*int graphHeight = 256;
 	//update text info
 	int startP = ui->startPSlider->value(), endP = ui->stopPSlider->value();
 	QString generatedInfo = "Start point: x:"+QString::number(z[startP])+"; Deflection:"+QString::number(defl[startP])
@@ -186,7 +193,8 @@ void odt::updateSelectedP()
 	const QPoint CenterEnd(endP*sizeMult+50, (max-defl[endP])/(max-min)*(graphHeight));
 	selectDrawer.drawEllipse(CenterEnd, 2,2);
 	//output resulting image
-	ui->label->setPixmap(QPixmap::fromImage(graphWithSelect));
+	ui->label->setPixmap(QPixmap::fromImage(graphWithSelect));*/
+
 }
 
 void odt::on_startPSlider_valueChanged()
@@ -249,7 +257,7 @@ void odt::on_calcMod_clicked()
 	int startP = ui->startPSlider->value(), stopP = ui->stopPSlider->value();
 	for(int i=startP;i<stopP;i++)
 	{
-		tmpZ = (-1)*(z[i]-z[startP-1]);
+		tmpZ = (z[i]-z[startP-1]);
 		trueDefl = ((defl[i]+((-1)*defl[startP-1]))/calRat);
 		tmpDepth = tmpZ-trueDefl;
 		tmpE = (3*(1-(v*v))*k*trueDefl*pow(10,-9))/(4*sqrt(R*pow(10,-9))*pow((tmpDepth*pow(10,-9)),1.5));
