@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>ModEla</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="ico.qrc">
+    <normaloff>:/ico/modela.ico</normaloff>:/ico/modela.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="openFileB">
     <property name="geometry">
@@ -56,7 +60,9 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="ico.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>exitB</sender>
