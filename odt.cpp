@@ -8,10 +8,14 @@
 
 odt::odt(QWidget *parent, QString inName) :
 	QMainWindow(parent),
-	ui(new Ui::odt)
+	ui(new Ui::odt),
+	startPointer(nullptr),
+	stopPointer(nullptr)
 {
 	filename = inName;
 	ui->setupUi(this);
+	startPointer = new QCPItemLine(ui->label);
+	stopPointer = new QCPItemLine(ui->label);
 	if(openFile())
 	{
 		this->show();
@@ -69,7 +73,7 @@ void odt::readNT()
 	{
 		QString currentLine;
 		readFile->readLineInto(&currentLine);
-		if(currentLine==NULL)
+		if(currentLine==nullptr)
 		{
 			if(rowsRead>2)
 				break;
@@ -102,7 +106,7 @@ void odt::readFS()
 	{
 		QString currentLine;
 		readFile->readLineInto(&currentLine);
-		if(currentLine==NULL)
+		if(currentLine==nullptr)
 			break;
 		QStringList numbersInText;
 		int posF = 0;
@@ -131,70 +135,31 @@ void odt::drawData()
 	}
 	ui->startPSlider->setMaximum(amPoints-1);
 	ui->stopPSlider->setMaximum(amPoints-1);
-	/*int sp=50, graphHeight=256;
-	if(amPoints<512)
-		sizeMult=512/(double)amPoints;
-	else
-	{
-		sizeMult=1;
-		ui->startPSlider->setGeometry(50,270,(amPoints-1),16);
-		ui->stopPSlider->setGeometry(50,290,(amPoints-1),16);
-	}
-	graph = QImage((amPoints*sizeMult)+sp, graphHeight+2,QImage::Format_RGB32);
-	graph.fill(Qt::white);
-	QPainter pen(&graph);
-	pen.setRenderHint( QPainter::Antialiasing );
-	pen.setPen(QPen(Qt::red,2,Qt::SolidLine,Qt::RoundCap));
-	for(int i=0;i<amPoints-1;i++)
-	{
-		pen.drawLine((i*sizeMult)+sp,((max-defl[i])/(max-min)*(graphHeight)),
-					 ((i+1)*sizeMult)+sp,((max-defl[i+1])/(max-min)*(graphHeight)));
-	}
-	pen.setPen(QPen(Qt::black,1,Qt::SolidLine,Qt::FlatCap));
-	pen.drawText(0,graph.height()-5,QString::number(min));
-	pen.drawText(0,10,QString::number(max));
-	pen.drawText(42,((max)/(max-min)*(graphHeight)+3),"0");
-	pen.drawLine(sp,0,sp,graph.height()-1);
-	pen.drawLine(sp,((max)/(max-min)*(graphHeight)-1),
-				 graph.width()-1,((max)/(max-min)*(graphHeight)));//draw line at 0 defl
-	ui->label->setGeometry(0,0,graph.width(), graph.height());
-	ui->label->setPixmap(QPixmap::fromImage(graph));*/
-	QCustomPlot* plotData = ui->label;
+	auto* plotData = ui->label;
 	plotData->addGraph();
 	plotData->graph(0)->addData(z,defl);
 	plotData->xAxis->setLabel("z, nm");
 	plotData->yAxis->setLabel("defl");
 	plotData->rescaleAxes();
-	plotData->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	plotData->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	plotData->replot();
 }
 
 void odt::updateSelectedP()
 {
-	/*int graphHeight = 256;
 	//update text info
 	int startP = ui->startPSlider->value(), endP = ui->stopPSlider->value();
 	QString generatedInfo = "Start point: x:"+QString::number(z[startP])+"; Deflection:"+QString::number(defl[startP])
 			+";\tEnd point: x:"+QString::number(z[endP])+"; Deflection:"+QString::number(defl[endP])+".";
 	ui->infoLabel->setText(generatedInfo);
-	//draw lines of selected values
-	QImage graphWithSelect = graph;
-	QPainter selectDrawer(&graphWithSelect);
-	//selected as starting point
-	selectDrawer.setPen(QPen(Qt::black,2,Qt::SolidLine, Qt::FlatCap));
-	selectDrawer.drawLine(startP*sizeMult+50,0,startP*sizeMult+50,graph.height());
-	selectDrawer.setPen(QPen(Qt::black,1,Qt::SolidLine, Qt::FlatCap));
-	const QPoint CenterStart(startP*sizeMult+50, (max-defl[startP])/(max-min)*(graphHeight));
-	selectDrawer.drawEllipse(CenterStart, 2,2);
-	//selected as end point
-	selectDrawer.setPen(QPen(Qt::black,2,Qt::SolidLine, Qt::FlatCap));
-	selectDrawer.drawLine(endP*sizeMult+50,0,endP*sizeMult+50,graph.height());
-	selectDrawer.setPen(QPen(Qt::black,1,Qt::SolidLine, Qt::FlatCap));
-	const QPoint CenterEnd(endP*sizeMult+50, (max-defl[endP])/(max-min)*(graphHeight));
-	selectDrawer.drawEllipse(CenterEnd, 2,2);
-	//output resulting image
-	ui->label->setPixmap(QPixmap::fromImage(graphWithSelect));*/
-
+	//draw arrows pointing to selected points
+	startPointer->start->setCoords(z[startP], defl[startP]+1);
+	startPointer->end->setCoords(z[startP], defl[startP]);
+	startPointer->setHead(QCPLineEnding::esSpikeArrow);
+	stopPointer->start->setCoords(z[endP], defl[endP]+1);
+	stopPointer->end->setCoords(z[endP], defl[endP]);
+	stopPointer->setHead(QCPLineEnding::esSpikeArrow);
+	ui->label->replot();
 }
 
 void odt::on_startPSlider_valueChanged()
@@ -212,7 +177,7 @@ void odt::proposePoints()
 	bool minPassed = false, startFound = false;
 	for(int i=0;i<defl.size();i++)
 	{
-		if(defl[i]==min)
+		if(defl[i]<=min)
 		{
 			minPassed = true;
 		}
@@ -303,4 +268,5 @@ void odt::on_saveB_clicked()
 	outText << qPrintable("\nAverage:\t" + QString::number(avrE));
 	outText.flush();
 	out.close();
+	QMessageBox::information(this,"Done", ("Done. File was saved."));
 }

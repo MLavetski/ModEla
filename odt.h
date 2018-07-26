@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTextStream>
+#include <qcustomplot.h>
 
 namespace Ui {
 class odt;
@@ -41,6 +42,8 @@ private:
 	QImage graph;
 	double max, min, sizeMult=0.8, R=10, k=27, v=0.3, calRat=1.25;
 	double tmpZ, trueDefl, tmpDepth, tmpE, avrE=0;
+	QCPItemLine* startPointer;
+	QCPItemLine* stopPointer;
 	bool openFile();
 	void readNT();
 	void readFS();

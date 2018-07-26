@@ -31,6 +31,10 @@
   <property name="windowTitle">
    <string/>
   </property>
+  <property name="windowIcon">
+   <iconset resource="ico.qrc">
+    <normaloff>:/ico/modela.ico</normaloff>:/ico/modela.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QSlider" name="startPSlider">
     <property name="geometry">
@@ -266,6 +270,8 @@ ratio</string>
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="ico.qrc"/>
+ </resources>
  <connections/>
 </ui>

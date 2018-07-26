@@ -38,3 +38,9 @@ HEADERS += \
 FORMS += \
         modela.ui \
     odt.ui
+
+win32:RC_ICONS += modela.ico
+
+RESOURCES += \
+    ico.qrc
+
